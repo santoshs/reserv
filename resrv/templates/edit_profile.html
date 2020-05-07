@@ -1,0 +1,21 @@
+{% from "helper.html" import render_field %}
+{% extends 'base.html' %}
+{% set title="Profile" %}
+{% set pagetitle = "Editing @" + current_user.username %}
+
+{% block content %}
+<hr/>
+
+<div class="row">
+  <div class="col-md-2"></div>
+  <div class="col-md-6">
+
+    <form role="form" action="{{ url_for('.edit_profile') }}" method="post">
+      {{ form.hidden_tag() }}
+      {{ render_field(form.email, class="form-control") }}
+      {{ render_field(form.password, class="form-control") }}
+      {{ render_field(form.confirm, class="form-control") }}
+      <button type="submit" class="form-control btn btn-light">Update</button>
+    </form>
+
+{% endblock %}

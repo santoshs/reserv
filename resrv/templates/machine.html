@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% set title=machine.alias or machine.hostname %}
+
+{% block content %}
+{% if machine %}
+<div class="container row-fluid">
+  <h2>{{ machine.alias or machine.hostname }}
+    <small>
+      {% if current_user.is_authenticated %}
+      <a href="{{ url_for('.add_machine', id=machine.id) }}" class="btn"
+         title="Edit machine details">
+        <i class="fas fa-edit"></i>
+      </a>
+      {% endif %}
+      <a href="{{ url_for('.sys_access', id=machine.id) }}" class="btn"
+         title="Get sysaccess file">
+        <i class="fas fa-file-alt"></i>
+      </a>
+    </small>
+  </h2>
+
+  <div class="row">
+    <table class="table table-borderless">
+      <tbody>
+        <tr>
+          <th scope="row">Hostname</th>
+          <td>{{ machine.hostname }}</td>
+        </tr>
+        <tr>
+          <th scope="row">IP Address</th>
+          <td>{{ machine.address }}</td>
+        </tr>
+        <tr>
+          <th scope="row">Alias</th>
+          <td>{{ machine.alias }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="text-center">
+  <a class="btn" data-toggle="collapse" href="#MachineDetails" role="button" aria-expanded="false" aria-controls="MachineDetails">
+    Show more
+  </a>
+  <div class="collapse" id="MachineDetails">
+    <div class="card card-body">
+      <div class="row">
+        <div class="col-sm-6">
+          <dl>
+            {% if machine.sys_user %}
+            <dt>Login User</dt>
+            <dd>{{ machine.sys_user }}</dd>
+            {% endif %}
+
+            {% if machine.sys_passwd %}
+            <dt>Login Password</dt>
+            <dd>{{ machine.sys_passwd }}</dd>
+            {% endif %}
+
+            {% if machine.console_type %}
+            <dt>Console Type</dt>
+            <dd>{{ machine.console_type }}</dd>
+            {% endif %}
+
+            {% if machine.console_sys %}
+            <dt>Console system</dt>
+            <dd>{{ machine.console_sys }}</dd>
+            {% endif %}
+
+            {% if machine.console_user %}
+            <dt>Cosole user</dt>
+            <dd>{{ machine.console_user }}</dd>
+            {% endif %}
+
+            {% if machine.console_passwd %}
+            <dt>Console password</dt>
+            <dd>{{ machine.console_passwd }}</dd>
+            {% endif %}
+
+            {% if machine.console_ipmi_user %}
+            <dt>IPMI user</dt>
+            <dd>{{ machine.console_ipmi_user }}</dd>
+            {% endif %}
+
+            {% if machine.console_ipmi_passwd %}
+            <dt>IPMI password</dt>
+            <dd>{{ machine.console_ipmi_passwd }}</dd>
+            {% endif %}
+
+            {% if machine.machine %}
+            <dt>Machine name</dt>
+            <dd>{{ machine.machine }}</dd>
+            {% endif %}
+
+            {% if machine.pname %}
+            <dt>Logical partition name</dt>
+            <dd>{{ machine.pname }}</dd>
+            {% endif %}
+
+            {% if machine.tport %}
+            <dt>Telnet Port</dt>
+            <dd>{{ machine.tport }}</dd>
+            {% endif %}
+
+            {% if machine.line %}
+            <dt>Line</dt>
+            <dd>{{ machine.line }}</dd>
+            {% endif %}
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+  </p>
+
+  <!-- Reservation details -->
+  {% if current_user.is_authenticated %}
+  <div class="row">
+    {% if machine.reservation|length > 0 %}
+    {% if machine in current_user.reserved_machines %}
+    <a href="{{ url_for('.release', id=machine.id) }}" class="btn btn-danger">
+      Release
+    </a>
+    {% else %}
+    <p>
+      Machine is currently used by
+      <a href="{{ url_for('.profile', id=machine.reservation[0].id) }}">
+        <span>@{{ machine.reservation[0].username }}</span>
+      </a>
+    </p>
+    {% endif %} <!-- machined is reserved -->
+    {% else %}
+    <a href="{{ url_for('.reserve', id=machine.id) }}" class="btn btn-light">
+      Reserve
+    </a>
+    {% endif %} <!-- machine is free -->
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

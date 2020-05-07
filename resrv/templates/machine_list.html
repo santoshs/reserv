@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% set title="Machine List" %}
+
+{% block content %}
+<h3>Machine List</h3>
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Hostname</th>
+      <th scope="col">IP Address</th>
+      <th scope="col">Alias</th>
+      <th scope="col">Availability</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for machine in machines %}
+    <tr style='cursor: pointer; cursor: hand;'
+        {% if machine.reservation | length > 0 %}
+      class="table-secondary" title="Machine reserved by @{{ machine.reservation[0].username }}"
+        {% endif %}
+        onclick="window.location='{{ url_for('.machine', id=machine.id) }}';">
+      <th scope="row">{{ machine.id }}</th>
+      <td>{{ machine.hostname }}</td>
+      <td>{{ machine.address }}</td>
+      <td>{{ machine.alias }}</td>
+      <td>
+        {% if machine.reservation | length > 0 %}
+        Reserved
+        {% else %}
+        Free
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

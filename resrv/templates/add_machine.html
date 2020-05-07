@@ -1,0 +1,37 @@
+{% from "helper.html" import render_field %}
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="text-center">Add Machine</h2>
+<div class="row">
+  <div class="col-md-2"></div>
+  <div class="col-md-8">
+
+
+    <form role="form" action="{% if machine %}{{ url_for('.add_machine',
+                              id=machine.id) }} {% else %} {{
+                              url_for('.add_machine')}} {% endif %}"
+          method="post">
+      {{ form.hidden_tag() }}
+      {{ render_field(form.hostname, class="form-control") }}
+      {{ render_field(form.address, class="form-control") }}
+      {{ render_field(form.alias, class="form-control") }}
+      {{ render_field(form.sys_user, class="form-control") }}
+      {{ render_field(form.sys_passwd, class="form-control") }}
+      <hr/>
+      {{ render_field(form.console_type, class="form-control") }}
+      {{ render_field(form.console_sys, class="form-control") }}
+      {{ render_field(form.console_user, class="form-control") }}
+      {{ render_field(form.console_passwd, class="form-control") }}
+      {{ render_field(form.console_ipmi_user, class="form-control") }}
+      {{ render_field(form.console_ipmi_passwd, class="form-control") }}
+      {{ render_field(form.machine, class="form-control") }}
+      {{ render_field(form.pname, class="form-control") }}
+      {{ render_field(form.tport, class="form-control") }}
+      {{ render_field(form.line, class="form-control") }}
+
+      <button type="submit" class="form-control btn btn-light">Submit</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

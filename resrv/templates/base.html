@@ -1,0 +1,51 @@
+{% extends 'master.html' %}
+
+{% block master_head %}
+  <!-- Perpage head extension -->
+  {% block head %}
+  {% endblock %}
+{% endblock %}
+
+{% block body %}
+  <div class="container-fluid">
+    <div class="row">
+      {% block __top %}
+      {% endblock %}
+    </div>
+
+    <div class="row">
+      <div class="col-md-3" id="lsb">
+        {% block lsb_content %}
+        {% endblock %}
+      </div>
+
+      <div class="col-md-6" id="main">
+      <!-- Error content -->
+      <div id="info">
+        <div id="message"></div>
+      </div>
+
+      <div id="content-title" class="heading1">
+        {% block title %}
+        {% if pagetitle %}
+        <div class="page-header">
+          <h1> {{ pagetitle }}
+            {% if subtitle %} <small>{{ subtitle }} </small>{% endif %}
+          </h1>
+        </div>
+        {% endif %}
+        {% endblock %}
+      </div>
+
+      <div id="content" class="article">
+        {% block content %}{% endblock %}
+      </div>
+      </div>
+
+
+      <div class="col-md-3">
+        {% block rsb_content %}{% endblock %}
+      </div>
+    </div>
+  </div>
+{% endblock %}
