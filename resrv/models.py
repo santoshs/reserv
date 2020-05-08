@@ -92,7 +92,9 @@ class User(db.Model, UserMixin):
         return '<User %r>' % self.username
 
 
-class ReservationHistory(db.Model):
+class ReservationLog(db.Model):
+    __tablename__ = 'reservation_log'
+
     id = db.Column(db.Integer(), primary_key=True)
     machine_id = db.Column(db.Integer(), db.ForeignKey('machine.id'))
     user_id = db.Column(db.Integer(), db.ForeignKey('user.id'))
@@ -100,7 +102,11 @@ class ReservationHistory(db.Model):
     end = db.Column(db.DateTime())
 
     user = db.relationship(User, innerjoin=True, lazy="joined")
+    machine = db.relationship(Machine, innerjoin=True, lazy="joined")
 
     def __init__(self, machine_id, user_id):
         self.machine_id = machine_id
         self.user_id = user_id
+
+    def __repr__(self):
+        return '<ReservationLog %d %s %s' % (self.id, self.user.username, self.machine.alias)

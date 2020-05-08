@@ -1,9 +1,10 @@
 from flask import Blueprint, render_template, flash, request, redirect, url_for
 from flask_login import login_user, logout_user, login_required, current_user
 from sqlalchemy import and_
+from sqlalchemy.sql import func
 
 from resrv.forms import LoginForm, MachineAddForm, UserForm
-from resrv.models import db, User, Machine, ReservationHistory
+from resrv.models import db, User, Machine, ReservationLog
 
 main = Blueprint('main', __name__)
 
@@ -119,7 +120,7 @@ def reserve(id):
             user = "@" + m.reservation[0].username
         flash("Machine is already reserved by {}".format(user), "warning");
     else:
-        db.session.add(ReservationHistory(id, current_user.id))
+        db.session.add(ReservationLog(id, current_user.id))
         m.reservation.append(current_user)
         db.session.commit()
         flash("@{}, Machine successfully reserved!".format(current_user.username), "info")
@@ -144,6 +145,14 @@ def release(id):
 
     if m in current_user.reserved_machines:
         current_user.reserved_machines.remove(m)
+        r = ReservationLog.query.filter_by(machine_id=id,
+                                           user_id=current_user.id, end=None).one()
+        if not r:
+            flash("ReservationLogMiss: Internal Error")
+
+        r.end = func.now()
+        db.session.add(r)
+
         db.session.commit()
         flash("Machine {} released".format(m.alias), "info")
         return redirect(url_for(".machine_list", id=id))
