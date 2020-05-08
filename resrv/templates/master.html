@@ -35,13 +35,6 @@
       <div class="collapse navbar-collapse">
         <ul class="navbar-nav mr-auto">
           <li class="nav-item">
-          {% if not current_user.is_authenticated %}
-            <a class="nav-link" href="{{ url_for('.login') }}">Login</a>
-          {% else %}
-            <a class="nav-link" href="{{ url_for('.logout') }}">Logout</a>
-          {% endif %}
-          </li>
-          <li class="nav-item">
             <a class="nav-link" href="{{ url_for('.machine_list') }}">List Machines</a>
           </li>
           {% if current_user.is_authenticated %}
@@ -50,16 +43,28 @@
           </li>
           {% endif %}
         </ul>
-        {% if current_user.is_authenticated %}
-        <span class="navbar-text">
-          <a class="nav-link" href="{{ url_for('.profile') }}">
-            @{{ current_user.username }}
-          </a>
-        </span>
-        <a href="{{ url_for('.edit_profile') }}" class="btn">
-          <i class="fas fa-edit"></i>
-        </a>
-        {% endif %}
+        <ul class="navbar-nav">
+          {% if current_user.is_authenticated %}
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="UserProfileDropDown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              @{{ current_user.username }}
+            </a>
+            <div class="dropdown-menu" aria-labelledby="UserProfileDropdown">
+              <a href="{{ url_for('.profile') }}" class="dropdown-item"> View Profile </a>
+              <a href="{{ url_for('.edit_profile') }}" class="dropdown-item">
+                Edit Profile
+              </a>
+              <div class="dropdown-divider"></div>
+              <a href="{{ url_for('.logout') }}" class="dropdown-item">Logout</a>
+            </div>
+          </li>
+          {% else %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('.login') }}">Login</a>
+          </li>
+          {% endif %}
+          <li class="nav-item"></li>
+        </ul>
       </div>
     </nav>
 
