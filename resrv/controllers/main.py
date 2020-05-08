@@ -75,9 +75,9 @@ def add_machine(id):
             flash("Machine details added successfully.", "info")
             m = Machine(form.hostname.data, form.address.data, form.alias.data)
         else:
-            form.populate_obj(m)
             flash("Machine details updated.", "info")
 
+        form.populate_obj(m)
         db.session.add(m)
         db.session.commit()
         return redirect(url_for(".machine", id=m.id))
