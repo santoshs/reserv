@@ -148,14 +148,13 @@ def release(id):
         r = ReservationLog.query.filter_by(machine_id=id,
                                            user_id=current_user.id, end=None).one()
         if not r:
-            flash("ReservationLogMiss: Internal Error")
+            flash("ReservationLogMissing: Internal Error")
 
         r.end = func.now()
         db.session.add(r)
-
         db.session.commit()
         flash("Machine {} released".format(m.alias), "info")
-        return redirect(url_for(".machine_list", id=id))
+        return redirect(url_for(".machine_list"))
     else:
         flash("Machine is not reserved by you", "danger")
         return redirect(url_for(".machine", id=id))
