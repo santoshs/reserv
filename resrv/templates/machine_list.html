@@ -17,7 +17,7 @@
     {% for machine in machines %}
     <tr style='cursor: pointer; cursor: hand;'
         {% if machine.reservation | length > 0 %}
-      class="table-secondary" title="Machine reserved by @{{ machine.reservation[0].username }}"
+      class="table-secondary" title="Machine reserved by @{{ machine.reservation[0].user.username }}"
         {% endif %}
         onclick="window.location='{{ url_for('.machine', id=machine.id) }}';">
       <th scope="row">{{ machine.id }}</th>
@@ -26,9 +26,9 @@
       <td>{{ machine.alias }}</td>
       <td>
         {% if machine.reservation | length > 0 %}
-        Reserved
+        <span>Not Available</span>
         {% else %}
-        Free
+        <span>Available</span>
         {% endif %}
       </td>
     </tr>

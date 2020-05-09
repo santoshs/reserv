@@ -1,3 +1,4 @@
+from datetime import timedelta, date
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, AnonymousUserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -9,11 +10,6 @@ from sqlalchemy_utils.types.choice import ChoiceType
 from sqlalchemy.ext.declarative import declarative_base
 
 db = SQLAlchemy()
-
-t_reservation = Table('reservation', db.Model.metadata,
-                      db.Column('id', Integer, ForeignKey('machine.id'), primary_key=True),
-                      db.Column('user', Integer, ForeignKey('user.id'))
-)
 
 class Machine(db.Model):
     __tablename__ = 'machine'
@@ -42,8 +38,6 @@ class Machine(db.Model):
     tport = db.Column(db.String())
     line = db.Column(db.String())
 
-    reservation = db.relationship("User", secondary=t_reservation)
-
     def __init__(self, hostname, address, alias=None):
         self.hostname = hostname
         self.address = address
@@ -56,8 +50,8 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer(), primary_key=True)
     username = db.Column(db.String())
     password = db.Column(db.String())
-
-    reserved_machines = db.relationship(Machine, secondary=t_reservation)
+    last_login = db.Column(db.DateTime())
+    email = db.Column(db.String())
 
     def __init__(self, username, password):
         self.username = username
@@ -90,6 +84,28 @@ class User(db.Model, UserMixin):
 
     def __repr__(self):
         return '<User %r>' % self.username
+
+
+class Reservation(db.Model):
+    __tablename__ = 'reservation'
+
+    id = db.Column(db.Integer, ForeignKey('machine.id'), primary_key=True)
+    user_id = db.Column(db.Integer, ForeignKey('user.id'), nullable=False)
+    end_date = db.Column(db.DateTime)
+    message = db.Column(db.String(), nullable=True)
+
+    user = db.relationship(User, backref="reservations")
+    machine = db.relationship(Machine, backref="reservation")
+
+    def __init__(self, machine_id, user_id, duration_days, log):
+        self.id = machine_id;
+        self.user_id = user_id
+        self.message = log
+        self.update_time(duration_days)
+
+    def update_time(self, duration_days):
+        if duration_days and duration_days != '':
+            self.end_date = date.today() + timedelta(days=int(duration_days))
 
 
 class ReservationLog(db.Model):

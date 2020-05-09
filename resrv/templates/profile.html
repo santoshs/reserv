@@ -3,5 +3,12 @@
 {% set subtitle = "Profile" %}
 
 {% block content %}
+{% if current_user.is_authenticated and current_user.id == user.id %}
+<p><small>Last login <span>{{user.last_login | humanize}}</span></small></p>
+{% endif %}
 
+<dl>
+  <dt>Email: </dt>
+  <dd><a href="mailto:{{ user.email }}">{{ user.email }}</dd>
+</dl>
 {% endblock %}

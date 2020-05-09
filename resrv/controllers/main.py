@@ -3,8 +3,8 @@ from flask_login import login_user, logout_user, login_required, current_user
 from sqlalchemy import and_
 from sqlalchemy.sql import func
 
-from resrv.forms import LoginForm, MachineAddForm, UserForm
-from resrv.models import db, User, Machine, ReservationLog
+from resrv.forms import LoginForm, MachineAddForm, UserForm, ReservationForm
+from resrv.models import db, User, Machine, ReservationLog, Reservation
 
 main = Blueprint('main', __name__)
 
@@ -19,6 +19,10 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).one()
         login_user(user)
+
+        user.last_login = func.now()
+        db.session.add(user)
+        db.session.commit()
 
         flash("Logged in successfully.", "info")
         return redirect(request.args.get("next") or url_for(".home"))
@@ -46,7 +50,11 @@ def profile(id):
 @main.route("/edit_profile", methods=["GET", "POST"])
 @login_required
 def edit_profile():
-    form = UserForm(obj=current_user)
+    if request.method == "GET":
+        form = UserForm(obj=current_user)
+    else:
+        form=UserForm()
+
     if form.validate_on_submit():
         if form.email.data:
             current_user.email = form.email.data
@@ -90,47 +98,57 @@ def add_machine(id):
     return render_template("add_machine.html", form=form, machine=m)
 
 
-@main.route("/machine/<id>")
+@main.route("/machine/<id>", methods=["GET", "POST"])
 def machine(id):
     machine = Machine.query.get(id)
     if machine is None:
         flash("No such machine, select one from the machine list", "warning")
         return redirect(url_for(".machine_list"))
 
-    return render_template("machine.html", machine=machine)
+    res = Reservation.query.get(id)
+    form = ReservationForm()
+    if request.method == 'GET':
+        if res:
+            form.message.data = res.message
+            if res.end_date is None:
+                form.forever.data = True
+
+    if form.validate_on_submit():
+        if not current_user.is_authenticated:
+            return redirect(url_for('.login'))
+
+        if form.forever.data == True:
+            form.duration.data = None
+
+        if not res:
+            res = Reservation(id, current_user.id, form.duration.data, form.message.data)
+            db.session.add(ReservationLog(id, current_user.id))
+            flash("Successfully reserved " + machine.alias, "info")
+        else:
+            form.populate_obj(res)
+            res.message = form.message.data
+            res.update_time(form.duration.data)
+            flash("Reservation for " + machine.alias + " updated", "info")
+
+        machine.reservation.append(res)
+        current_user.reservations.append(res)
+        db.session.commit()
+
+    for field, errors in form.errors.items():
+        for error in errors:
+            flash(error, 'warning')
+
+    return render_template("machine.html", machine=machine, form=form)
 
 @main.route("/machines")
 def machine_list():
     machines = Machine.query.all()
     return render_template('machine_list.html', machines=machines)
 
-@main.route("/reserve/<id>")
-@login_required
-def reserve(id):
-    m = Machine.query.get(id)
-
-    if m is None:
-        flash("No such machine, select one from the machine list", "warning")
-        return redirect(url_for(".machine_list"))
-
-    if len(m.reservation) > 0:
-        if m.reservation[0].id == current_user.id:
-            user = "you"
-        else:
-            user = "@" + m.reservation[0].username
-        flash("Machine is already reserved by {}".format(user), "warning");
-    else:
-        db.session.add(ReservationLog(id, current_user.id))
-        m.reservation.append(current_user)
-        db.session.commit()
-        flash("@{}, Machine successfully reserved!".format(current_user.username), "info")
-
-    return redirect(url_for(".machine", id=id))
-
 @main.route("/release/<id>")
 @login_required
 def release(id):
-    if len(current_user.reserved_machines) == 0:
+    if len(current_user.reservations) == 0:
         flash("You don't have any machines reserved", "warning")
         return redirect(url_for(".machine", id=id))
 
@@ -143,15 +161,17 @@ def release(id):
         flash("MultipleReservations: Internal error", "danger")
         return redirect(url_for(".machine", id=id))
 
-    if m in current_user.reserved_machines:
-        current_user.reserved_machines.remove(m)
+    if m.reservation[0] in current_user.reservations:
+        db.session.delete(m.reservation[0])
         r = ReservationLog.query.filter_by(machine_id=id,
-                                           user_id=current_user.id, end=None).one()
-        if not r:
-            flash("ReservationLogMissing: Internal Error")
+                                           user_id=current_user.id, end=None)
+        if len(r.all()) != 1:
+            flash("ReservationLogNoneOrMany: Internal Error", "warning")
+        else:
+            r = r.one()
+            r.end = func.now()
+            db.session.add(r)
 
-        r.end = func.now()
-        db.session.add(r)
         db.session.commit()
         flash("Machine {} released".format(m.alias), "info")
         return redirect(url_for(".machine_list"))
